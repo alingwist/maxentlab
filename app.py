@@ -38,6 +38,18 @@ html.shiny-busy #busy_status {
   opacity: 1;
   transition: opacity 0.1s linear 0.35s;   /* appears only if work is slow */
 }
+
+/* Shiny gives every input container a bottom margin, which makes the boxes
+   taller than they look and throws the Clear button out of line with them. */
+.maxentlab-filters .shiny-input-container {
+  margin-bottom: 0;
+  width: 100%;
+}
+/* Buttons are padded more generously than form controls; matching the padding
+   makes Clear exactly as tall as the boxes beside it. */
+.maxentlab-filters .btn {
+  --bs-btn-padding-y: 0.375rem;
+}
 """
 
 app_ui = ui.page_sidebar(
@@ -417,9 +429,9 @@ def server(input, output, session):
                   }, selected="contains")),
             field("7rem", ui.input_text("filter_value", None, placeholder="value")),
             ui.input_action_button("clear_filters", "Clear",
-                                   class_="btn-sm btn-outline-secondary"),
+                                   class_="btn-outline-secondary"),
             ui.div(ui.output_text("row_count"), class_="text-muted small ms-auto"),
-            class_="d-flex flex-wrap gap-2 align-items-center pb-2",
+            class_="maxentlab-filters d-flex flex-wrap gap-2 align-items-center pb-2",
         )
 
     @render.text
