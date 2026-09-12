@@ -171,12 +171,11 @@ takes `alpha`, `mu`, `init_weights`, `lower_bound` and `upper_bound`.
 
 ## Online version
 
-MaxEntLab runs in the browser, with nothing to install:
+MaxEntLab runs in the browser:
 
 **[maxentlab.alinirheche.org](https://maxentlab.alinirheche.org)**
 
-It takes a few seconds to start the first time. Your data stays on your own
-machine — files are processed in the browser and never uploaded to a server.
+It takes a few seconds to start the first time.
 
 ## Citation
 
