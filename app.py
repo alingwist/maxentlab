@@ -78,7 +78,10 @@ app_ui = ui.page_sidebar(
         width=300,
     ),
 
-    ui.output_ui("status"),
+    # bslib's main container is display:block, so its gap does not separate the
+    # status card from the grid below; this class supplies the same spacing as
+    # a margin, matching the gap between the two cards.
+    ui.div(ui.output_ui("status"), class_="bslib-mb-spacing"),
 
     ui.layout_columns(
         ui.card(
