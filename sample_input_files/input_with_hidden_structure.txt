@@ -1,0 +1,10 @@
+input	output	hidden	probability	Iamb	Trochee	*StressHi
+kata	KAta	(KAta)	1	1	0	0
+kata	kaTA	(kaTA)	0	0	1	0
+kata	KAta	(KA)ta	1	0	1	0
+kata	kaTA	ka(TA)	0	0	1	0
+pika	PIka	(PIka)	0	1	0	1
+pika	piKA	(piKA)	1	0	1	0
+pika	PIka	(PI)ka	0	0	1	1
+pika	piKA	pi(KA)	1	0	1	0
+
