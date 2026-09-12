@@ -1,8 +1,6 @@
 # MaxEntLab
 
-A Maximum Entropy constraint-based modeling tool. Fit constraint weights to
-tableau data, inspect the predicted distribution, and explore the model by
-hand — in the browser or from the command line.
+A Maximum Entropy constraint-based modeling tool. Fit constraint weights to tableaux, inspect the predicted distribution, and adjust the weights manually. It works in the browser or from the command line.
 
 * Fits Maximum Entropy models by L-BFGS-B with an analytic gradient
 * Handles **hidden structure**: candidates that share an overt output are
