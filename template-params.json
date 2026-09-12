@@ -1,0 +1,4 @@
+{
+  "title": "MaxEntLab",
+  "include_in_head": "<link rel=\"icon\" type=\"image/svg+xml\" href=\"data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%2212%22%20fill%3D%22%23ffffff%22%2F%3E%3Cpath%20fill%3D%22%23007bc2%22%20d%3D%22M10%2045V19h6l4.5%2012L25%2019h6v26h-5V28.5L22.5%2037h-4L15%2028.5V45z%22%2F%3E%3Cpath%20fill%3D%22%231D1F21%22%20d%3D%22M35%2019h5.5v20.5H54V45H35z%22%2F%3E%3C%2Fsvg%3E\" />"
+}
