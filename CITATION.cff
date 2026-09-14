@@ -1,0 +1,25 @@
+cff-version: 1.2.0
+message: "If you use MaxEntLab in your research or teaching, please cite it as below."
+type: software
+title: "MaxEntLab: A Maximum Entropy constraint-based modeling tool"
+abstract: >-
+  MaxEntLab fits constraint weights in Maximum Entropy grammars to tableau
+  data. It handles categorical and variable data, supports hidden structure by
+  marginalizing over the parses of each overt output, and offers L1 or L2
+  regularization. It runs in the browser or as a Python library.
+authors:
+  - family-names: Nirheche
+    given-names: Ali
+    affiliation: University of Massachusetts Amherst
+version: 1.0.0
+date-released: 2026-09-14
+license: MIT
+repository-code: "https://github.com/alingwist/maxentlab"
+url: "https://maxentlab.alinirheche.org"
+keywords:
+  - phonology
+  - Maximum Entropy
+  - MaxEnt
+  - Harmonic Grammar
+  - hidden structure
+  - constraint-based grammar
