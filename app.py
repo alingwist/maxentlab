@@ -90,9 +90,6 @@ app_ui = ui.page_sidebar(
         width=300,
     ),
 
-    # bslib's main container is display:block, so its gap does not separate the
-    # status card from the grid below; this class supplies the same spacing as
-    # a margin, matching the gap between the two cards.
     ui.div(ui.output_ui("status"), class_="bslib-mb-spacing"),
 
     ui.layout_columns(
@@ -116,13 +113,9 @@ app_ui = ui.page_sidebar(
             ui.output_data_frame("tableau"),
             full_screen=True,
         ),
-        # Side by side on a wide screen; stacked once that squeezes the
-        # weights column to the point of being unreadable.
         col_widths={"sm": 12, "md": 12, "lg": [4, 8]},
     ),
 
-    # Outside the sidebar: a fixed element nested in it could be clipped or
-    # dragged along by the sidebar's own transforms.
     ui.div(
         ui.tags.span(class_="spinner-border spinner-border-sm",
                      aria_hidden="true"),
@@ -132,8 +125,6 @@ app_ui = ui.page_sidebar(
     ),
 
     ui.head_content(ui.tags.style(BUSY_CSS)),
-    # Spinners over any output that is recomputing (the tableau after a weight
-    # change), plus a progress bar across the top of the page.
     ui.busy_indicators.use(spinners=True, pulse=True),
 
     title="MaxEntLab",
@@ -146,9 +137,9 @@ app_ui = ui.page_sidebar(
 def server(input, output, session):
     data_store = reactive.value(None)     # canonical input DataFrame
     fit_store = reactive.value(None)      # dict returned by optimize_weights
-    manual_weights = reactive.value(None)  # hand-edited weights, or None
+    manual_weights = reactive.value(None)  # modified weights, or None
 
-    # Fit
+    # Fitting
     @reactive.effect
     @reactive.event(input.generate)
     def _generate():
@@ -194,7 +185,7 @@ def server(input, output, session):
         fit_store.set(result)
         manual_weights.set(None)
 
-    # Hand-edited weights
+    # Modified weights
     def _weights_now():
         """Current weight vector, read outside of any reactive dependency."""
         with reactive.isolate():
@@ -293,28 +284,18 @@ def server(input, output, session):
                     "lt": series < number,
                     "le": series <= number,
                 }[operator]]
-            # A numeric comparison against a text column, or a value that is not
-            # a number, filters nothing rather than erroring.
 
         return rows
 
     @reactive.calc
     def tableau_frame():
-        """Predictions with the grammar on top: one weight under each
-        constraint column, blank under every other column.
-
-        Display only — the downloaded file gets its own weights row from
-        format_output, so this one is not written out twice. The weights row is
-        added after filtering, so it is always present.
-        """
+        """Predictions with the weights under each constraint column."""
         preds = filtered_predictions()
         fit = fit_store.get()
         if preds is None or fit is None:
             return None
 
         display = preds.copy()
-        # Violations are read as integers; the weights row puts floats in the
-        # same columns, so widen them first rather than truncating the weights.
         for name in fit["constraint_names"]:
             display[name] = display[name].astype(float)
 
@@ -325,7 +306,7 @@ def server(input, output, session):
             if col in weights:
                 row[col] = float(weights[col])
             elif pd.api.types.is_numeric_dtype(display[col]):
-                row[col] = np.nan          # renders blank
+                row[col] = np.nan
             else:
                 row[col] = "weights" if col == display.columns[0] else ""
 
@@ -399,9 +380,6 @@ def server(input, output, session):
 
     @render.ui
     def filter_bar():
-        # Depends on the fit alone, so typing in the boxes never rebuilds (and
-        # so never blurs) the bar. The column list is read without taking a
-        # dependency on the predictions themselves.
         fit = fit_store.get()
         if fit is None:
             return ui.div()
@@ -449,10 +427,6 @@ def server(input, output, session):
         frame = tableau_frame()
         if frame is None:
             return render.DataGrid(pd.DataFrame())
-        # No column filters: their input boxes sit directly under the headers,
-        # where they read as editable cells rather than as filters.
-        # summary off: the filter bar reports the row count itself, without
-        # counting the weights row as data.
         return render.DataGrid(frame, height="420px", width="100%",
                                filters=False, summary=False)
 

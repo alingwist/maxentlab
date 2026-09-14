@@ -3,11 +3,10 @@ from scipy.optimize import minimize as scipy_minimize
 import pandas as pd
 
 
-# Columns that describe the candidate rather than violating a constraint.
+# Columns that describe the training data.
 META_COLUMNS = ('Input', 'Output', 'Hidden', 'Frequency')
 
-# Header spellings accepted for each canonical column, so that files written
-# for the R version of this app (input/output/hidden/probability) load as-is.
+# Header spellings accepted for each canonical column.
 _HEADER_ALIASES = {
     'input': 'Input',
     'inputs': 'Input',
@@ -30,9 +29,6 @@ _HEADER_ALIASES = {
     'tokens': 'Frequency',
 }
 
-# When a file carries both a probability column and a counts column (the
-# "raw frequencies" format of the R app, where probability is a 0/1 winner
-# flag and counts holds the real token counts), the counts are the data.
 _PROBABILITY_SPELLINGS = ('probability', 'prob')
 _COUNT_SPELLINGS = ('count', 'counts', 'tokens')
 
@@ -40,18 +36,15 @@ _COUNT_SPELLINGS = ('count', 'counts', 'tokens')
 # I/O Functions
 
 def read_input(filepath):
-    """Read a tab-separated (or comma-separated .csv) OT input file.
+    """Read a tab-separated (or comma-separated .csv) input file.
 
     Expected format:
         Input <tab> Output <tab> Frequency <tab> C1 <tab> C2 <tab> ...
-    or, with hidden structure:
+    or with hidden structure:
         Input <tab> Output <tab> Hidden <tab> Frequency <tab> C1 <tab> ...
 
-    Header names are matched case-insensitively and the spellings used by the
-    R version of this app (input/output/hidden/probability, plus an optional
-    counts column) are accepted. Frequencies may be probabilities, percentages
-    or raw counts: they are always normalized per tableau, so the scale does
-    not matter.
+    Frequencies may be probabilities, percentages or raw counts:
+    they are always normalized per tableau.
 
     Returns:
         pd.DataFrame with columns Input, Output, [Hidden], Frequency, and the
@@ -63,11 +56,7 @@ def read_input(filepath):
 
 
 def prepare_dataframe(data):
-    """Canonicalize an already-loaded DataFrame (headers, dtypes, column order).
-
-    Split out from read_input so that callers holding a DataFrame — the Shiny
-    app reading an upload, say — get exactly the same treatment as a file.
-    """
+    """Canonicalize an already-loaded DataFrame (headers, dtypes, column order)."""
     data = data.copy()
     data.columns = [str(c).strip() for c in data.columns]
 
@@ -80,9 +69,9 @@ def prepare_dataframe(data):
     for col, low in zip(data.columns, lowered):
         canonical = _HEADER_ALIASES.get(low)
         if canonical is None:
-            continue  # a constraint: leave its name untouched
+            continue
         if canonical == 'Frequency' and has_probability and has_counts:
-            # Prefer the counts column; the probability column is a winner flag.
+            # Prefer the counts column.
             if low in _PROBABILITY_SPELLINGS:
                 drop.append(col)
                 continue
@@ -98,8 +87,7 @@ def prepare_dataframe(data):
             )
 
     # Force the label columns to string so that numeric-looking item names
-    # (e.g. a pseudo-word that parses as a number) do not collide with real
-    # strings in unique / groupby / sort operations downstream.
+    # do not collide with real strings in unique / groupby / sort operations.
     for col in ('Input', 'Output', 'Hidden'):
         if col in data.columns:
             data[col] = data[col].astype(str)
@@ -143,13 +131,7 @@ def format_output(pred_df, weights, constraint_names):
 
 
 def write_output(pred_df, weights, constraint_names, filepath):
-    """Write predictions to file with weights in the second row.
-
-    Format matches the R scripts' output:
-      Row 1: column headers
-      Row 2: weights under constraint columns, empty elsewhere
-      Row 3+: data rows
-    """
+    """Write predictions to file with weights in the second row."""
     with open(filepath, 'w', encoding='utf-8') as f:
         f.write(format_output(pred_df, weights, constraint_names))
 
@@ -157,7 +139,7 @@ def write_output(pred_df, weights, constraint_names, filepath):
 # Internal Helpers
 
 def constraint_columns(data):
-    """Constraint column names, in file order (everything that is not metadata)."""
+    """Constraint column names, in file order."""
     return [c for c in data.columns if c not in META_COLUMNS]
 
 
@@ -167,10 +149,7 @@ def has_hidden_structure(data):
 
 
 def _get_input_groups(inputs):
-    """Precompute input groupings as (name, index_array) tuples.
-
-    Preserves the order of first appearance in the data.
-    """
+    """Precompute input groupings as (name, index_array) tuples."""
     groups = []
     seen = {}
     for i, inp in enumerate(inputs):
@@ -182,16 +161,7 @@ def _get_input_groups(inputs):
 
 
 class _Groups:
-    """Row groupings for one dataset.
-
-    inputs:  [(input_name, row_indices), ...]                  — one per tableau
-    outputs: [[parse_indices per overt output], ...] or None    — parallel to inputs
-    heads:   one representative row index per overt output, or None
-
-    `outputs` and `heads` are None when the data has no hidden structure, in
-    which case every row is its own overt output and the hidden-structure code
-    paths are skipped entirely.
-    """
+    """Row groupings for one dataset."""
 
     def __init__(self, inputs, outputs=None, heads=None):
         self.inputs = inputs
@@ -228,7 +198,7 @@ def _build_groups(data):
 
 
 def _compute_probs(violations, weights, input_groups):
-    """Compute predicted candidate probabilities using the log-sum-exp trick.
+    """Compute predicted candidate probabilities.
 
     P(y|x) = exp(-v_y . w) / Z(x)
     where Z(x) = sum_y' exp(-v_y' . w)
@@ -250,11 +220,7 @@ def _compute_probs(violations, weights, input_groups):
 
 
 def _overt_probs(probs, groups):
-    """Sum per-parse probabilities over the parses of each overt output.
-
-    The total is written back onto every parse row of that output, so the
-    result stays aligned with the data rows.
-    """
+    """Sum per-parse probabilities over the parses of each overt output."""
     if not groups.hidden:
         return probs
     out = np.empty_like(probs)
@@ -280,13 +246,7 @@ def _overt_frequency(values):
 
 
 def _compute_observed(freqs, groups):
-    """Normalize frequencies to observed probabilities per tableau.
-
-    Frequencies are always normalized, so counts, percentages and probabilities
-    are all handled the same way and need no declaration from the user. With
-    hidden structure the distribution is over overt outputs, and each output's
-    probability is written onto every one of its parse rows.
-    """
+    """Normalize frequencies to observed probabilities per tableau."""
     observed = np.zeros(len(freqs))
 
     if not groups.hidden:
@@ -315,9 +275,6 @@ def _build_prior_vector(n_constraints, reg, sigma, alpha):
 
     For L2: coefficient = 1 / (2 * sigma^2)    -> penalty = coeff * (w - mu)^2
     For L1: coefficient = alpha                 -> penalty = coeff * |w - mu|
-
-    sigma/alpha may be a scalar (shared by all constraints) or an array with
-    one entry per constraint.
     """
     prior = np.zeros(n_constraints)
 
@@ -348,8 +305,7 @@ def _objective_and_gradient(weights, violations, observed, groups,
 
     With hidden structure, p(y|x) is the overt probability (summed over the
     parses of y) and E_q[v|x] weights each parse by its posterior share
-    q(y|x) * p(parse | y, x) — the standard expected-count form, which is what
-    makes variable data with hidden structure work.
+    q(y|x) * p(parse | y, x) — the standard expected-count form.
     """
     probs = _compute_probs(violations, weights, groups.inputs)
 
@@ -372,8 +328,8 @@ def _objective_and_gradient(weights, violations, observed, groups,
     # Gradient of NLL (observed - expected violations)
     gradient = np.zeros(len(weights))
     for _, idx in groups.inputs:
-        diff = target[idx] - probs[idx]        # q - p
-        gradient += diff @ violations[idx]     # sum_j (q_j - p_j) * v_j
+        diff = target[idx] - probs[idx]
+        gradient += diff @ violations[idx]
 
     # Regularization
     if reg == 'L2':
@@ -404,7 +360,7 @@ def predict_probabilities(data, weights, constraint_names=None):
     Args:
         data: DataFrame with Input, Output, [Hidden], Frequency, + constraints.
         weights: array of constraint weights.
-        constraint_names: constraint column names (default: all non-metadata).
+        constraint_names: constraint column names.
 
     Returns:
         DataFrame with the original columns plus:
@@ -416,7 +372,7 @@ def predict_probabilities(data, weights, constraint_names=None):
         With hidden structure, two prediction columns are returned instead of
         one: Predicted_parse (the probability of that individual parse) and
         Predicted (the probability of the overt output, summed over its
-        parses). Error compares like with like — observed overt probability
+        parses). Error compares observed overt probability
         against predicted overt probability.
     """
     if constraint_names is None:
@@ -449,7 +405,7 @@ def predict_probabilities(data, weights, constraint_names=None):
 
 
 def compute_accuracy(pred_df, threshold=0.05):
-    """Threshold accuracy: an input counts as correct if ALL of its candidates
+    """Threshold accuracy: an input counts as correct if all of its candidates
     have |error| <= threshold.
 
     Returns:
@@ -507,20 +463,19 @@ def optimize_weights(
     Args:
         data: DataFrame (Input, Output, [Hidden], Frequency, C1, C2, ...).
 
-        --- Regularization ---
+        Regularization:
         reg:    'L2' (Gaussian prior), 'L1', or None.
         sigma:  L2 prior std dev (higher = weaker prior). Default 1.0.
         alpha:  L1 prior strength (higher = stronger). Default 1.0.
         mu:     Prior mean. Default 0.0.
 
-        --- Weight initialization and bounds ---
+        Weight initialization and bounds:
         init_weights: initial weight value(s). Float or array. Default 0.0.
         lower_bound:  lower bound on weights. Float, array, or None.
                       Default 0.0 (non-negative weights).
         upper_bound:  upper bound on weights. Float, array, or None.
 
         constraint_names: constraint columns to fit (default: all non-metadata).
-        verbose: print progress messages. Default True.
 
     Returns:
         dict with keys:
@@ -544,12 +499,12 @@ def optimize_weights(
     # Prior coefficients per constraint
     prior_coeff = _build_prior_vector(n_con, reg, sigma, alpha)
 
-    # Ensure mu is a numpy-compatible value (scalar or array)
+    # Ensure mu is a numpy-compatible value
     mu_arr = np.atleast_1d(np.asarray(mu, dtype=float))
     if mu_arr.size == 1:
-        mu_val = float(mu_arr[0])  # scalar broadcast
+        mu_val = float(mu_arr[0])
     elif mu_arr.size == n_con:
-        mu_val = mu_arr  # per-constraint array
+        mu_val = mu_arr
     else:
         raise ValueError(
             f"mu length ({mu_arr.size}) != number of constraints ({n_con})"
