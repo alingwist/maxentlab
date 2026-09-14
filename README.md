@@ -1,5 +1,7 @@
 # MaxEntLab
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.22752925.svg)](https://doi.org/10.5281/zenodo.22752925)
+
 A Maximum Entropy constraint-based modeling tool. Fit constraint weights to tableaux, inspect the predicted distribution, and adjust the weights manually. It works in the browser or from the command line.
 
 * Fits Maximum Entropy models by L-BFGS-B with an analytic gradient
@@ -178,4 +180,8 @@ It takes a few seconds to start the first time.
 ## Citation
 
 Nirheche, Ali. 2026. *MaxEntLab: A Maximum Entropy constraint-based modeling tool.*
-Amherst, MA: University of Massachusetts Amherst.
+Amherst, MA: University of Massachusetts Amherst. https://doi.org/10.5281/zenodo.22752925
+
+This DOI always resolves to the latest version. To cite the exact version you used,
+use its version-specific DOI from the [Zenodo record](https://doi.org/10.5281/zenodo.22752925)
+(version 1.0.0: https://doi.org/10.5281/zenodo.22752926).

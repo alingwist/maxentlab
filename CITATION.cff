@@ -12,6 +12,14 @@ authors:
     affiliation: University of Massachusetts Amherst
 version: 1.0.0
 date-released: 2026-09-14
+doi: 10.5281/zenodo.22752925
+identifiers:
+  - type: doi
+    value: 10.5281/zenodo.22752925
+    description: All versions (resolves to the latest release)
+  - type: doi
+    value: 10.5281/zenodo.22752926
+    description: Version 1.0.0
 license: MIT
 repository-code: "https://github.com/alingwist/maxentlab"
 url: "https://maxentlab.alinirheche.org"
