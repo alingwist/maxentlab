@@ -4,9 +4,8 @@ type: software
 title: "MaxEntLab: A Maximum Entropy constraint-based modeling tool"
 abstract: >-
   MaxEntLab fits constraint weights in Maximum Entropy grammars to tableau
-  data. It handles categorical and variable data, supports hidden structure by
-  marginalizing over the parses of each overt output, and offers L1 or L2
-  regularization. It runs in the browser or as a Python library.
+  data. It handles categorical and variable data, and supports hidden structure. 
+  It runs in the browser or as a Python library.
 authors:
   - family-names: Nirheche
     given-names: Ali
